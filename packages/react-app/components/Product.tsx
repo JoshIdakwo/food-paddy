@@ -63,40 +63,28 @@ const Product = ({profile, id, setError, setLoading, clear, option }: any) => {
   // Format the product data that we read from the smart contract
   const getFormatProduct = useCallback(() => {
     if (!rawProduct) return null;
-    console.log(getFavourite);
-    const favourite = true
-    // const favourite = rawProduct[0] === getFavourite[0]
-    console.log(favourite);
-    if(rawProduct[7].includes(option)) {
+
+    const commonProductProperties = {
+      owner: rawProduct[0],
+      name: rawProduct[1],
+      image: rawProduct[2],
+      description: rawProduct[3],
+      location: rawProduct[4],
+      price: Number(rawProduct[5]),
+      sold: rawProduct[6].toString(),
+      options: rawProduct[7],
+    };
+
+    if (option === "all" || rawProduct[7].includes(option)) {
       setProduct({
-        owner: rawProduct[0],
-        name: rawProduct[1],
-        image: rawProduct[2],
-        description: rawProduct[3],
-        location: rawProduct[4],
-        price: Number(rawProduct[5]),
-        sold: rawProduct[6].toString(),
-        options: rawProduct[7],
-        favourite,
+        ...commonProductProperties,
+        favourite: true,
       });
     } else {
-      if(option === "all") {
-        setProduct({
-          owner: rawProduct[0],
-          name: rawProduct[1],
-          image: rawProduct[2],
-          description: rawProduct[3],
-          location: rawProduct[4],
-          price: Number(rawProduct[5]),
-          sold: rawProduct[6].toString(),
-          options: rawProduct[7],
-          favourite,
-        })
-      } else {
-        setProduct(null)
-      }
+      setProduct(null);
     }
-  }, [rawProduct, option, getFavourite]);
+}, [rawProduct, option, getFavourite]);
+
 
   // Call the getFormatProduct function when the rawProduct state changes
   useEffect(() => {
@@ -119,80 +107,44 @@ const Product = ({profile, id, setError, setLoading, clear, option }: any) => {
     await res.wait();
   };
 
+  const handleAsyncActionWithToast = async (action, successMessage, errorMessage) => {
+  setLoading("Processing...");
+  clear();
+
+  try {
+    if (!address && openConnectModal) {
+      openConnectModal();
+      return;
+    }
+    
+    await toast.promise(action(), {
+      pending: "Processing...",
+      success: successMessage,
+      error: errorMessage,
+    });
+  } catch (e) {
+    console.log({ e });
+    setError(e?.reason || e?.message || "Something went wrong. Try again.");
+  } finally {
+    setLoading(null);
+  }
+};
+
   // Define the purchaseProduct function that is called when the user clicks the purchase button
-  const purchaseProduct = async () => {  
-    setLoading("Approving ...");
-    clear();
+  const purchaseProduct = async () => {
+  const purchaseAction = () => handlePurchase();
+  handleAsyncActionWithToast(purchaseAction, "Product purchased successfully", "Failed to purchase product");
+};
 
-    try {
-      // If the user is not connected, trigger the wallet connect modal
-      if (!address && openConnectModal) {
-        openConnectModal();
-        return;
-      }
-      // If the user is connected, call the handlePurchase function and display a notification
-      await toast.promise(handlePurchase(), {
-        pending: "Purchasing product...",
-        success: "Product purchased successfully",
-        error: "Failed to purchase product",
-      });
-      // If there is an error, display the error message
-    } catch (e: any) {
-      console.log({ e });
-      setError(e?.reason || e?.message || "Something went wrong. Try again.");
-      // Once the purchase is complete, clear the loading state
-    } finally {
-      setLoading(null);
-    }
-  };
+const handleAddToFavourite = async () => {
+  const addToFavouriteAction = () => addFavourite();
+  handleAsyncActionWithToast(addToFavouriteAction, "Added to favourite successfully", "Failed to add to favourite");
+};
 
-  // Add food to favourite
-  const handleAddToFavourite = async () => {
-    setLoading("Adding to favourite...");
-    try {
-      // If the user is not connected, trigger the wallet connect modal
-      if (!address && openConnectModal) {
-        openConnectModal();
-        return;
-      }
-      // If the user is connected, call the handlePurchase function and display a notification
-      await toast.promise(addFavourite(), {
-        pending: "Adding to favourite...",
-        success: "Added to favourite successfully",
-        error: "Failed to add to favourite",
-      });
-      // If there is an error, display the error message
-    } catch (e: any) {
-      console.log({ e });
-      setError(e?.reason || e?.message || "Something went wrong. Try again.");
-    } finally {
-      setLoading(null);
-    }
-  }
-
-  // Delete food from favourite
-  const handleDeleteFavourite = async () => {
-    setLoading("Deleting from favourite...");
-    try {
-      // If the user is not connected, trigger the wallet connect modal
-      if (!address && openConnectModal) {
-        openConnectModal();
-        return;
-      }
-      // If the user is connected, call the handlePurchase function and display a notification
-      await toast.promise(deleteFavourite(), {
-        pending: "Deleting favourite...",
-        success: "Deleted favourite successfully",
-        error: "Failed to delete from favourite",
-      });
-      // If there is an error, display the error message
-    } catch (e: any) {
-      console.log({ e });
-      setError(e?.reason || e?.message || "Something went wrong. Try again.");
-    } finally {
-      setLoading(null);
-    }
-  }
+const handleDeleteFavourite = async () => {
+  const deleteFavouriteAction = () => deleteFavourite();
+  handleAsyncActionWithToast(deleteFavouriteAction, "Deleted favourite successfully", "Failed to delete from favourite");
+};
 
   // If the product cannot be loaded, return null
   if (!product) return null;
@@ -280,9 +232,7 @@ const Product = ({profile, id, setError, setLoading, clear, option }: any) => {
             </div>
 
             {/* Buy button that calls the purchaseProduct function on click */}
-            {profile ? (
-              <></>
-            ):(
+            {!profile && (
               <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={purchaseProduct}
