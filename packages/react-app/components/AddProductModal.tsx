@@ -36,7 +36,7 @@ const AddProductModal = () => {
   const [debouncedProductImage] = useDebounce(productImage, 500);
   const [debouncedProductDescription] = useDebounce(productDescription, 500);
   const [debouncedProductLocation] = useDebounce(productLocation, 500);
-  const [loading, setLoading] = useState("");
+  const [loading, setLoading] = useState(false);
   const [displayBalance, setDisplayBalance] = useState(false);
   const [debounceOptions] = useDebounce(productOptions, 500);
 
@@ -94,7 +94,7 @@ const AddProductModal = () => {
   // Define function that handles the creation of a product through the marketplace contract
   const handleCreateProduct = async () => {
     if (!createProduct) {
-      throw "Failed to create product";
+      throw new Error("Failed to create product");
     }
     setLoading("Creating...");
     if (!isComplete) throw new Error("Please fill all fields");
@@ -139,7 +139,7 @@ const AddProductModal = () => {
 
   // If the user is connected and has a balance, display the balance
   useEffect(() => {
-    if (isConnected && cusdBalance) {
+    if (isConnected && cusdBalance !== undefined) {
       setDisplayBalance(true);
       return;
     }
@@ -275,7 +275,7 @@ const AddProductModal = () => {
             data-bs-toggle="modal"
             data-bs-target="#exampleModalCenter"
           >
-            Balance: {Number(cusdBalance?.formatted || 0).toFixed(2)} cUSD
+            Balance: {cusdBalance ? Number(cusdBalance.formatted || 0).toFixed(2) : 'N/A'} cUSD
           </span>
 
           <span

@@ -101,8 +101,11 @@ const Favourite = ({id, setError, setLoading, clear }: any) => {
         openConnectModal();
         return;
       }
+
+      const purchaseResult = await handlePurchase();
+      
       // If the user is connected, call the handlePurchase function and display a notification
-      await toast.promise(handlePurchase(), {
+      await toast.promise(purchaseResult, {
         pending: "Purchasing product...",
         success: "Favourite purchased successfully",
         error: "Failed to purchase product",
