@@ -64,8 +64,8 @@ const Product = ({profile, id, setError, setLoading, clear, option }: any) => {
   const getFormatProduct = useCallback(() => {
     if (!rawProduct) return null;
     console.log(getFavourite);
-    const favourite = true
-    // const favourite = rawProduct[0] === getFavourite[0]
+    // const favourite = true
+    const favourite = rawProduct[0] === getFavourite[0]
     console.log(favourite);
     if(rawProduct[7].includes(option)) {
       setProduct({

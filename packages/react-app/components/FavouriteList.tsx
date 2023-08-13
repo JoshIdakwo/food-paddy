@@ -27,7 +27,7 @@ const FavouriteList = () => {
   };
   
   // Define a function to return the products
-  const cart = () => {
+  const favourite = () => {
     // If there are no products, return null
     if (!favLength) {
       return (
@@ -94,7 +94,7 @@ const FavouriteList = () => {
                     <h1 className="w-full text-center text-2xl font-bold mb-8 underline underline-offset-4">My Favourite</h1>
                     <div className="flex flex-col gap-y-8">
                       {/* Loop through the products and return the Product component */}
-                      {cart()}
+                      {favourite()}
                     </div>
 
                   </div>
@@ -102,10 +102,11 @@ const FavouriteList = () => {
                   <div className="bg-gray-200 px-4 py-3 text-right">
                     <button
                       type="button"
-                      className="py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-700 mr-2"
+                      disabled={!!loading}
+                      className={`bg-prosperity py-2 px-4 text-black rounded mr-2`}
                       onClick={() => setVisible(false)}
                     >
-                      <i className="fas fa-times"></i> Cancel
+                      {loading ? loading : "Cancel"}
                     </button>
                   </div>
                 </div>

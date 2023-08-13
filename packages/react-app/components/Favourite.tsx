@@ -31,21 +31,15 @@ interface Favourite {
 }
 
 // Define the Favourite component which takes in the id of the product and some functions to display notifications
-const Favourite = ({id, setError, setLoading, clear }: any) => {
+const Favourite = ({id, setError, setLoading }: any) => {
   // Use the useAccount hook to store the user's address
   const { address } = useAccount();
   // Use the useContractCall hook to read the data of the product with the id passed in, from the marketplace contract
   const { data: rawProduct }: any = useGetFavourite([address, id], true);
   // Use the useContractSend hook to purchase the product with the id passed in, via the marketplace contract
-  const { writeAsync: purchase } = useContractSend("buyProduct", [Number(id)]);
-  // Use the useContractSend hook to purchase the product with the id passed in, via the marketplace contract
-  const { data: deleteFavourite }:any = useDeleteFavourite([address, id]);
+  const { writeAsync: deleteFavourite }:any = useDeleteFavourite([id]);
   
-  const [product, setProduct] = useState<Favourite | null>(null);
-  // Use the useContractApprove hook to approve the spending of the product's price, for the ERC20 cUSD contract
-  const { writeAsync: approve } = useContractApprove(
-    product?.price?.toString() || "0"
-  );  
+  const [product, setProduct] = useState<Favourite | null>(null);  
 
 
   // Use the useConnectModal hook to trigger the wallet connect modal
@@ -72,50 +66,6 @@ const Favourite = ({id, setError, setLoading, clear }: any) => {
   useEffect(() => {
     getFormatProduct();
   }, [getFormatProduct]);
-
-  // Define the handlePurchase function which handles the purchase interaction with the smart contract
-  const handlePurchase = async () => {
-    if (!approve || !purchase) {
-      throw "Failed to purchase this product";
-    }
-    // Approve the spending of the product's price, for the ERC20 cUSD contract
-    const approveTx = await approve();
-    // Wait for the transaction to be mined, (1) is the number of confirmations we want to wait for
-    await approveTx.wait();
-    setLoading("Purchasing...");
-    // Once the transaction is mined, purchase the product via our marketplace contract buyProduct function
-    const res = await purchase();
-    // Wait for the transaction to be mined
-    await res.wait();
-  };
-
-
-  // Define the purchaseProduct function that is called when the user clicks the purchase button
-  const purchaseProduct = async () => {
-    setLoading("Approving ...");
-    clear();
-
-    try {
-      // If the user is not connected, trigger the wallet connect modal
-      if (!address && openConnectModal) {
-        openConnectModal();
-        return;
-      }
-      // If the user is connected, call the handlePurchase function and display a notification
-      await toast.promise(handlePurchase(), {
-        pending: "Purchasing product...",
-        success: "Favourite purchased successfully",
-        error: "Failed to purchase product",
-      });
-      // If there is an error, display the error message
-    } catch (e: any) {
-      console.log({ e });
-      setError(e?.reason || e?.message || "Something went wrong. Try again.");
-      // Once the purchase is complete, clear the loading state
-    } finally {
-      setLoading(null);
-    }
-  };
 
   // Delete food from favourite
   const handleDeleteFavourite = async () => {
@@ -151,12 +101,12 @@ const Favourite = ({id, setError, setLoading, clear }: any) => {
 
   // Return the JSX for the product component
   return (
-    <div className="flex h-40 overflow-hidden items-start justify-between shadow-lg relative rounded-b-lg">
-      <div className="relative w-1/2 h-full">
+    <div className="flex h-24 overflow-hidden items-start justify-between shadow-lg relative rounded-b-lg">
+      <div className="relative w-2/6 h-full">
         {/* Show the number of products sold */}
         <span
           className={
-            "absolute z-10 right-0 mt-4 bg-slate-300 text-black font-bold p-1 rounded-l-lg px-4 shadow"
+            "absolute z-10 right-0 mt-4 bg-slate-300 text-black font-bold p-1 rounded-l-lg px-2 shadow text-sm"
             }
           >
             {product.sold} sold
@@ -167,26 +117,18 @@ const Favourite = ({id, setError, setLoading, clear }: any) => {
             alt={"image"}
             className="w-full h-full rounded-t-md object-cover object-center group-hover:opacity-75"
           />
-          {/* Show the address of the product owner as an identicon and link to the address on the Celo Explorer */}
-          <Link
-            href={`https://explorer.celo.org/alfajores/address/${product.owner}`}
-            className={"absolute bottom-0 h-12 w-12 overflow-hidden rounded-full"}
-          >
-            {identiconTemplate(product.owner)}
-          </Link>
         </div>
 
-        <div className={"relative px-4 pb-4 w-1/2 h-full flex flex-col justify-between"}>
-          <div
-            onClick={handleDeleteFavourite}
-            className="absolute border cursor-pointer border-slate-300 right-4 top-2"
-          >
-            <img width="24" height="24" src="https://img.icons8.com/color/48/000000/delete-sign--v1.png" alt="delete-sign--v1"/>
-          </div>
-          <div>
+        <div className={"relative px-4 pb-4 w-4/6 h-full flex flex-col justify-between"}>
+          <div className="flex items-center justify-between">
+            <div
+              onClick={handleDeleteFavourite}
+              className="absolute cursor-pointer right-4 top-3"
+            >
+              <img width="16" height="16" src="https://img.icons8.com/color/48/000000/delete-sign--v1.png" alt="delete-sign--v1"/>
+            </div>
             {/* Show the product name */}
-            <p className="mt-0 text-2xl font-bold">{product.name}</p>
-            
+            <p className="m-0 text-2xl font-bold">{product.name}</p>
           </div>
 
           <div className="flex justify-between items-start flex-col flex-wrap gap-4">
@@ -196,17 +138,6 @@ const Favourite = ({id, setError, setLoading, clear }: any) => {
                 <img src={"/location.svg"} alt="Location" className={"w-6"} />
                 {product.location}
               </h3>
-            </div>
-
-            {/* Buy button that calls the purchaseProduct function on click */}
-            <div className="">
-              <button
-                onClick={purchaseProduct}
-                className="border-[1px] px-2 py-1 border-gray-500 text-black rounded-lg hover:bg-black hover:text-white"
-              >
-                {/* Show the product price in cUSD */}
-                Buy {productPriceFromWei} cUSD
-              </button>
             </div>
           </div>
         </div>

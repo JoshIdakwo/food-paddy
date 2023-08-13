@@ -49,6 +49,10 @@ const AddProductModal = () => {
     productDescription &&
     productOptions.length > 0;
 
+  // Check if all the input fields are empty strings
+  const isEmpty = productName.trim() == "" || productPrice == 0 || productImage.trim() == "" || productLocation.trim() == "" || productDescription.trim() == "";
+
+
   // Clear the input fields after the product is added to the marketplace
   const clearForm = () => {
     setProductName("");
@@ -97,7 +101,7 @@ const AddProductModal = () => {
       throw "Failed to create product";
     }
     setLoading("Creating...");
-    if (!isComplete) throw new Error("Please fill all fields");
+    if (!isComplete || isEmpty) throw new Error("Please fill all fields");
     // Create the product by calling the writeProduct function on the marketplace contract
 
     const purchaseTx = await createProduct();
