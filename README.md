@@ -1,5 +1,5 @@
 # FOOD PADDY
-Demo: [Food Paddy]()
+Demo: [Food Paddy](https://food-paddy-react-app.vercel.app/)
 
 A simple marketplace dapp built on the Celo blockchain. The decentralized marketplace application helps users organize meal plan for the day. It offers the following
 - A user can uplaod their favourite meal for a particular time of the day
